@@ -1,0 +1,3835 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Koperasi Asmara Tani</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        /* ========== CSS DASHBOARD YANG SUDAH ADA ========== */
+        :root {
+            --primary: #2e7d32;
+            --primary-light: #4caf50;
+            --primary-dark: #1b5e20;
+            --secondary: #ff9800;
+            --accent: #ff5722;
+            --light: #f5f5f5;
+            --dark: #333;
+            --gray: #757575;
+            --gray-light: #e0e0e0;
+            --danger: #f44336;
+            --warning: #ffc107;
+            --success: #4caf50;
+            --info: #2196f3;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+        
+        /* Container Utama */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(to bottom, var(--primary-dark), var(--primary));
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-header img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .sidebar-header h1 {
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .sidebar-header .tagline {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-style: italic;
+        }
+        
+        .sidebar-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: none;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-close:hover {
+            transform: scale(1.2);
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .sidebar-menu ul {
+            list-style: none;
+        }
+        
+        .sidebar-menu li {
+            margin-bottom: 8px;
+        }
+        
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        
+        .sidebar-menu a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: var(--secondary);
+            padding-left: 30px;
+        }
+        
+        .sidebar-menu a.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border-left-color: var(--secondary);
+            font-weight: 600;
+        }
+        
+        .sidebar-menu i {
+            margin-right: 15px;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-left: 280px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        /* Top Navigation */
+        .top-nav {
+            background: white;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        
+        .nav-left {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--primary);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            display: none;
+        }
+        
+        .menu-toggle:hover {
+            transform: scale(1.1);
+        }
+        
+        .current-time {
+            font-size: 0.85rem;
+            color: var(--gray);
+            font-weight: 500;
+            background: var(--light);
+            padding: 8px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-top: 5px;
+        }
+        
+        .home-btn, .dashboard-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+        }
+        
+        .home-btn:hover, .dashboard-btn:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+        }
+        
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: var(--light);
+            border-radius: 25px;
+            padding: 10px 20px;
+            width: 320px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .search-bar input {
+            border: none;
+            background: transparent;
+            outline: none;
+            width: 100%;
+            margin-left: 12px;
+            font-size: 0.95rem;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 15px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .user-info:hover {
+            background: var(--light);
+            transform: translateY(-2px);
+        }
+        
+        .user-info img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-light);
+        }
+        
+        .user-details h4 {
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+        
+        .user-details p {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+        
+        /* Content Area */
+        .content {
+            padding: 30px;
+            flex: 1;
+            background: #f8f9fa;
+        }
+        
+        .page-title {
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-title h1 {
+            font-size: 2rem;
+            color: var(--primary-dark);
+            position: relative;
+            padding-bottom: 12px;
+        }
+        
+        .page-title h1:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+        
+        /* Dashboard Cards */
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        
+        .card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+        }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stat-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .stat-info {
+            flex: 1;
+        }
+        
+        .stat-info h3 {
+            font-size: 0.95rem;
+            color: var(--gray);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .stat-info p {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        .stat-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            transition: all 0.4s ease;
+        }
+        
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .bg-primary { background: linear-gradient(135deg, var(--primary), var(--primary-light)); }
+        .bg-secondary { background: linear-gradient(135deg, var(--secondary), #ffb74d); }
+        .bg-accent { background: linear-gradient(135deg, var(--accent), #ff8a65); }
+        .bg-info { background: linear-gradient(135deg, var(--info), #64b5f6); }
+        .bg-success { background: linear-gradient(135deg, var(--success), #81c784); }
+        .bg-warning { background: linear-gradient(135deg, var(--warning), #ffd54f); }
+        
+        /* Chart and Table Sections */
+        .dashboard-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+        
+        .chart-container, .table-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        
+        .chart-container:before, .table-container:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+        }
+        
+        .chart-container:hover, .table-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .section-header h2 {
+            font-size: 1.3rem;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+        
+        .chart-wrapper {
+            height: 280px;
+            position: relative;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 15px 18px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        th {
+            background-color: rgba(46, 125, 50, 0.05);
+            color: var(--primary-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        tr {
+            transition: background-color 0.3s ease;
+        }
+        
+        tr:hover {
+            background-color: rgba(46, 125, 50, 0.03);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .badge:hover {
+            transform: scale(1.05);
+        }
+        
+        .badge-success {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(76, 175, 80, 0.2);
+        }
+        
+        .badge-warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #e6a700;
+            border: 1px solid rgba(255, 193, 7, 0.2);
+        }
+        
+        .badge-danger {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(244, 67, 54, 0.2);
+        }
+        
+        .badge-overdue {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(244, 67, 54, 0.2);
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover:before {
+            left: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+        
+        /* Recent Activity */
+        .activity-list {
+            list-style: none;
+        }
+        
+        .activity-item {
+            display: flex;
+            padding: 18px 0;
+            border-bottom: 1px solid var(--gray-light);
+            transition: all 0.3s ease;
+        }
+        
+        .activity-item:hover {
+            background-color: rgba(46, 125, 50, 0.03);
+            border-radius: 10px;
+            padding-left: 15px;
+            padding-right: 15px;
+            transform: translateX(5px);
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .activity-item:hover .activity-icon {
+            transform: scale(1.1);
+        }
+        
+        .activity-content h4 {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .activity-content p {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+        
+        .activity-time {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+        
+        .required {
+            color: var(--danger);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid var(--gray-light);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+        }
+        
+        /* Footer */
+        .footer {
+            background: white;
+            padding: 20px 30px;
+            text-align: center;
+            color: var(--gray);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--gray-light);
+            margin-top: 30px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            transform: translateY(20px);
+            animation: fadeIn 0.5s ease forwards;
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            padding: 25px;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            color: white;
+        }
+        
+        .modal-header h3 {
+            color: white;
+            font-size: 1.4rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-close:hover {
+            transform: scale(1.2);
+        }
+        
+        .modal-body {
+            padding: 25px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-light);
+            margin-bottom: 25px;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .tab:hover {
+            background-color: rgba(46, 125, 50, 0.05);
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+            background: rgba(46, 125, 50, 0.05);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Admin Profile Section */
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .admin-profile img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-light);
+        }
+        
+        .admin-details h4 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+        
+        .admin-details p {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-bottom: 3px;
+        }
+        
+        .admin-details .admin-role {
+            font-size: 10px;
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        /* Bank Logo */
+        .bank-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 10px;
+            background: var(--light);
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .bank-logo i {
+            color: var(--primary);
+        }
+        
+        /* Modal Konfirmasi */
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .confirm-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            transform: translateY(20px);
+            animation: fadeIn 0.5s ease forwards;
+            overflow: hidden;
+        }
+        
+        .confirm-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-light);
+            background: linear-gradient(90deg, var(--warning), #ffb74d);
+            color: white;
+        }
+        
+        .confirm-body {
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .confirm-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        
+        /* Print Card */
+        .print-card {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 3000;
+            padding: 20px;
+        }
+        
+        @media print {
+            .print-card {
+                display: block;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+        
+        /* ========== CSS BARU UNTUK REAL-TIME SYNC ========== */
+        
+        /* Sync Status Bar */
+        .sync-status-bar {
+            background: linear-gradient(135deg, #2196F3, #0D47A1);
+            color: white;
+            padding: 12px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: -20px 30px 20px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+        
+        .sync-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sync-info i {
+            font-size: 18px;
+        }
+        
+        .sync-time {
+            font-size: 12px;
+            opacity: 0.9;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+        
+        .sync-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .sync-controls button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+        }
+        
+        .sync-controls button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        /* Table Styles dengan Input Real-time */
+        .simpanan-cell {
+            min-width: 150px;
+        }
+        
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .simpanan-input {
+            width: 100%;
+            padding: 8px 10px;
+            padding-right: 40px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .simpanan-input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+            outline: none;
+        }
+        
+        .currency {
+            position: absolute;
+            right: 10px;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .last-update {
+            font-size: 11px;
+            color: #666;
+            margin-top: 3px;
+        }
+        
+        .total-cell {
+            font-weight: 600;
+            color: #2e7d32;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-badge.active {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status-badge.inactive {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .actions-cell {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .btn-view {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .btn-edit {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .btn-update {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* Notification Container */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .notification {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideInRight 0.3s ease;
+            min-width: 300px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .notification.success {
+            border-left-color: #4CAF50;
+        }
+        
+        .notification.error {
+            border-left-color: #F44336;
+        }
+        
+        .notification.warning {
+            border-left-color: #FF9800;
+        }
+        
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+        }
+        
+        /* Updated Row Animation */
+        .updated-row {
+            animation: highlightRow 0.8s ease;
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05)) !important;
+        }
+        
+        @keyframes highlightRow {
+            0% { background: transparent; }
+            50% { background: linear-gradient(90deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1)); }
+            100% { background: linear-gradient(90deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05)); }
+        }
+        
+        /* Modal Styles untuk Update Simpanan */
+        .anggota-modal-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .anggota-modal-info h4 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn-secondary {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            color: #666;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .btn-secondary:hover {
+            background: #e9e9e9;
+        }
+        
+        /* Log Styles */
+        .log-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+        
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .log-type {
+            font-weight: 600;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .log-time {
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .log-message {
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+        
+        .log-user {
+            font-size: 11px;
+            color: #666;
+            text-align: right;
+        }
+        
+        /* Animations */
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 250px;
+            }
+            
+            .main-content {
+                margin-left: 250px;
+            }
+            
+            .stats-cards {
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 20px;
+            }
+            
+            .dashboard-row {
+                gap: 20px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .dashboard-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+            
+            .sidebar-close {
+                display: block;
+            }
+            
+            .search-bar {
+                width: 250px;
+            }
+            
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 18px;
+            }
+            
+            .content {
+                padding: 25px;
+            }
+            
+            .sync-status-bar {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+                padding: 10px;
+                margin: -15px 15px 15px;
+            }
+            
+            .sync-controls {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+                margin-bottom: 25px;
+            }
+            
+            .search-bar {
+                width: 200px;
+            }
+            
+            .nav-right {
+                gap: 15px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .section-header .btn {
+                align-self: flex-end;
+            }
+            
+            .chart-wrapper {
+                height: 220px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .chart-container, .table-container {
+                padding: 20px;
+            }
+            
+            .page-title {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .page-title h1 {
+                font-size: 1.8rem;
+            }
+            
+            .stat-info p {
+                font-size: 1.8rem;
+            }
+            
+            .stat-icon {
+                width: 70px;
+                height: 70px;
+                font-size: 1.8rem;
+            }
+            
+            .actions-cell {
+                flex-direction: column;
+                gap: 3px;
+            }
+            
+            .btn-action {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+            
+            .notification {
+                min-width: 250px;
+                padding: 12px 15px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .stats-cards {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .search-bar {
+                display: none;
+            }
+            
+            .top-nav {
+                padding: 15px 20px;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .card {
+                padding: 18px;
+                border-radius: 12px;
+            }
+            
+            .chart-container, .table-container {
+                padding: 18px;
+                border-radius: 12px;
+            }
+            
+            .chart-wrapper {
+                height: 200px;
+            }
+            
+            .user-details {
+                display: none;
+            }
+            
+            .page-title h1 {
+                font-size: 1.6rem;
+            }
+            
+            .section-header h2 {
+                font-size: 1.2rem;
+            }
+            
+            .stat-info p {
+                font-size: 1.6rem;
+            }
+            
+            .stat-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.6rem;
+            }
+            
+            .btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+            
+            .btn-sm {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+            
+            th, td {
+                padding: 12px 14px;
+                font-size: 0.85rem;
+            }
+            
+            .admin-profile {
+                flex-direction: column;
+                text-align: center;
+                padding: 15px;
+            }
+            
+            .admin-profile img {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .nav-buttons {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .home-btn, .dashboard-btn {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+            
+            .current-time {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
+            
+            .simpanan-input {
+                font-size: 13px;
+                padding: 6px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhADAiDm28b0fescUKnqADc9uk3Q2oIptWD-hyzBQXb2AMtoPrxb7Q9Ecr9SDV_RhqA9uWO6qTcepfbfuR7KFWuKUmYYPB-6JfiExBCzT-MljhNh1P1TPsabKvh2rAQzEtZUA0lpiIkIuBxHvHVuXl0GdUWEyaABcfpsHnX_kyDLN_pS2gVNzp_kIP6Vss/s1280/1000007204.jpg" alt="Logo Koperasi Asmara Tani">
+                <h1>Koperasi Asmara Tani</h1>
+                <div class="tagline">#koperasijenius</div>
+                <button class="sidebar-close" id="sidebarClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="sidebar-menu">
+                <ul>
+                    <li><a href="#" class="active" data-tab="dashboard"><i class="fas fa-home"></i> <span>Dashboard Utama</span></a></li>
+                    <li><a href="#" data-tab="anggota"><i class="fas fa-users"></i> <span>Data Anggota</span></a></li>
+                    <li><a href="#" data-tab="tabungan"><i class="fas fa-book"></i> <span>Tabungan Digital</span></a></li>
+                    <li><a href="#" data-tab="simpanan"><i class="fas fa-hand-holding-usd"></i> <span>Simpanan Anggota</span></a></li>
+                    <li><a href="#" data-tab="pinjaman"><i class="fas fa-file-invoice-dollar"></i> <span>Pinjaman & Angsuran</span></a></li>
+                    <li><a href="#" data-tab="laporan"><i class="fas fa-chart-line"></i> <span>Laporan Keuangan</span></a></li>
+                    <li><a href="#" data-tab="unit-usaha"><i class="fas fa-shopping-cart"></i> <span>Unit Usaha</span></a></li>
+                    <li><a href="#" data-tab="shu"><i class="fas fa-calculator"></i> <span>Laporan SHU</span></a></li>
+                    <li><a href="https://koperasi-asmara-tani-gvzg-cnzf9cru3-kang-ls-projects.vercel.app/call-alert.html"><i class="fas fa-bell"></i> <span>Call Alert</span></a></li>
+                    <li><a href="#" data-tab="pengaturan"><i class="fas fa-cog"></i> <span>Pengaturan Sistem</span></a></li>
+                    <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>Keluar</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Navigation -->
+            <div class="top-nav">
+                <div class="nav-left">
+                    <div class="nav-buttons">
+                        <button class="menu-toggle" id="menuToggle">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <button class="home-btn" id="homeBtn">
+                            <i class="fas fa-home"></i>
+                            <span>Beranda</span>
+                        </button>
+                        <button class="dashboard-btn" id="dashboardBtn">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Dashboard</span>
+                        </button>
+                    </div>
+                    <div class="current-time" id="currentTime"></div>
+                </div>
+                <div class="nav-right">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Cari data..." id="globalSearch">
+                    </div>
+                    <div class="user-info">
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhADAiDm28b0fescUKnqADc9uk3Q2oIptWD-hyzBQXb2AMtoPrxb7Q9Ecr9SDV_RhqA9uWO6qTcepfbfuR7KFWuKUmYYPB-6JfiExBCzT-MljhNh1P1TPsabKvh2rAQzEtZUA0lpiIkIuBxHvHVuXl0GdUWEyaABcfpsHnX_kyDLN_pS2gVNzp_kIP6Vss/s1280/1000007204.jpg" alt="Admin">
+                        <div class="user-details">
+                            <h4 id="topNavUsername">Admin Koperasi</h4>
+                            <p id="topNavRole">Super Administrator</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== SYNC STATUS BAR (BARU) ========== -->
+            <div class="sync-status-bar">
+                <div class="sync-info">
+                    <i class="fas fa-sync-alt"></i>
+                    <span id="syncStatusText">Menyinkronkan...</span>
+                    <span class="sync-time" id="lastSyncTime">-</span>
+                </div>
+                <div class="sync-controls">
+                    <button class="sync-btn" onclick="manualSync()" title="Sinkronisasi manual">
+                        <i class="fas fa-redo"></i> Sync Now
+                    </button>
+                    <button class="export-btn" onclick="exportAllData()" title="Export ke Excel">
+                        <i class="fas fa-file-excel"></i> Export
+                    </button>
+                    <button class="log-btn" onclick="showSyncLog()" title="Lihat log sinkronisasi">
+                        <i class="fas fa-history"></i> Log
+                    </button>
+                </div>
+            </div>
+
+            <!-- Real-time Notification Container -->
+            <div id="notificationContainer" class="notification-container"></div>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Dashboard Tab -->
+                <div class="tab-content active" id="dashboard">
+                    <div class="page-title">
+                        <h1>Dashboard Utama</h1>
+                        <div>
+                            <button class="btn btn-outline btn-sm" id="exportExcelBtn"><i class="fas fa-file-excel"></i> Export Excel</button>
+                            <button class="btn btn-outline btn-sm" id="importExcelBtn"><i class="fas fa-file-import"></i> Import Excel</button>
+                        </div>
+                    </div>
+
+                    <!-- Admin Profile Section -->
+                    <div class="admin-profile" id="adminProfileSection">
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhADAiDm28b0fescUKnqADc9uk3Q2oIptWD-hyzBQXb2AMtoPrxb7Q9Ecr9SDV_RhqA9uWO6qTcepfbfuR7KFWuKUmYYPB-6JfiExBCzT-MljhNh1P1TPsabKvh2rAQzEtZUA0lpiIkIuBxHvHVuXl0GdUWEyaABcfpsHnX_kyDLN_pS2gVNzp_kIP6Vss/s1280/1000007204.jpg" alt="Admin">
+                        <div class="admin-details">
+                            <h4 id="adminUsername">Admin Koperasi</h4>
+                            <p id="adminEmail">admin@koperasiasmaratani.id</p>
+                            <p id="adminRole">Super Administrator</p>
+                            <p class="admin-role">No. Rekening: <span id="adminRekening" class="bank-logo"><i class="fas fa-university"></i> 4098-01-019526-53-3 (BRI)</span></p>
+                        </div>
+                        
+                        <div>
+                            <button class="btn btn-primary" onclick="location.href='call-alert.html'">
+                                <i class="fas fa-bell"></i> Call Alert
+                            </button>
+                            <button class="btn btn-outline" onclick="location.href='kelola-pengguna.html'">
+                                <i class="fas fa-user-friends"></i> Kelola Anggota
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Stat Cards -->
+                    <div class="stats-cards">
+                        <div class="card stat-card">
+                            <div class="stat-info">
+                                <h3>Total Anggota</h3>
+                                <p id="totalAnggota">0</p>
+                            </div>
+                            <div class="stat-icon bg-primary">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="card stat-card">
+                            <div class="stat-info">
+                                <h3>Total Simpanan</h3>
+                                <p id="totalSimpanan">Rp 0</p>
+                            </div>
+                            <div class="stat-icon bg-secondary">
+                                <i class="fas fa-hand-holding-usd"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="card stat-card">
+                            <div class="stat-info">
+                                <h3>Total Pinjaman Aktif</h3>
+                                <p id="totalPinjaman">Rp 0</p>
+                            </div>
+                            <div class="stat-icon bg-accent">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="card stat-card">
+                            <div class="stat-info">
+                                <h3>Total SHU</h3>
+                                <p id="totalSHU">Rp 0</p>
+                            </div>
+                            <div class="stat-icon bg-info">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="card stat-card">
+                            <div class="stat-info">
+                                <h3>Total Kas</h3>
+                                <p id="totalKas">Rp 0</p>
+                            </div>
+                            <div class="stat-icon bg-success">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts and Tables Row -->
+                    <div class="dashboard-row">
+                        <!-- Chart Section -->
+                        <div class="chart-container">
+                            <div class="section-header">
+                                <h2>Grafik Perkembangan Keuangan</h2>
+                                <div>
+                                    <button class="btn btn-outline btn-sm" id="refreshChart"><i class="fas fa-sync-alt"></i> Refresh</button>
+                                    <button class="btn btn-outline btn-sm" id="yearlyChart">Tahunan</button>
+                                    <button class="btn btn-primary btn-sm" id="monthlyChart">Bulanan</button>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="financeChart"></canvas>
+                            </div>
+                        </div>
+                        <!-- Recent Activity -->
+                        <div class="table-container">
+                            <div class="section-header">
+                                <h2>Notifikasi Terbaru</h2>
+                                <button class="btn btn-outline btn-sm" id="lihatSemuaNotif">Lihat Semua</button>
+                            </div>
+                            <ul class="activity-list" id="activityList">
+                                <!-- Data akan diisi secara dinamis -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Tables Row -->
+                    <div class="dashboard-row">
+                        <!-- Pinjaman Terbaru -->
+                        <div class="table-container">
+                            <div class="section-header">
+                                <h2>Pinjaman Terbaru</h2>
+                                <button class="btn btn-outline btn-sm" id="lihatSemuaPinjaman">Lihat Semua</button>
+                            </div>
+                            <table id="pinjamanTable">
+                                <thead>
+                                    <tr>
+                                        <th>Nama Anggota</th>
+                                        <th>Tanggal</th>
+                                        <th>Jumlah</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data akan diisi secara dinamis -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Anggota Baru -->
+                        <div class="table-container">
+                            <div class="section-header">
+                                <h2>Anggota Baru</h2>
+                                <button class="btn btn-outline btn-sm" id="lihatSemuaAnggota">Lihat Semua</button>
+                            </div>
+                            <table id="anggotaTable">
+                                <thead>
+                                    <tr>
+                                        <th>Nama</th>
+                                        <th>Tanggal Bergabung</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data akan diisi secara dinamis -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== TAB DATA ANGGOTA DENGAN INPUT REAL-TIME ========== -->
+                <div class="tab-content" id="anggota">
+                    <div class="page-title">
+                        <h1>Data Anggota dengan Real-time Sync</h1>
+                        <div class="section-actions">
+                            <button class="btn btn-primary" onclick="tambahAnggota()">
+                                <i class="fas fa-user-plus"></i> Tambah Anggota
+                            </button>
+                            <button class="btn btn-outline" onclick="loadAnggotaData()">
+                                <i class="fas fa-redo"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="section-header">
+                            <h2>Daftar Anggota Koperasi</h2>
+                            <div class="search-bar">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Cari anggota..." id="searchAnggota" onkeyup="filterAnggota()">
+                            </div>
+                        </div>
+                        
+                        <!-- Tabel dengan Input Real-time -->
+                        <div class="table-container">
+                            <table id="anggotaFullTable">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama</th>
+                                        <th>NIA</th>
+                                        <th>Email</th>
+                                        <th>Simpanan Pokok</th>
+                                        <th>Simpanan Wajib</th>
+                                        <th>Simpanan Sukarela</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="anggotaTableBody">
+                                    <tr>
+                                        <td colspan="10" class="loading-row">
+                                            <i class="fas fa-spinner fa-spin"></i> Memuat data...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Stats Footer -->
+                        <div class="table-footer">
+                            <div class="stats-summary">
+                                <span><i class="fas fa-users"></i> Total: <strong id="totalAnggotaTable">0</strong> Anggota</span>
+                                <span><i class="fas fa-money-bill-wave"></i> Total Simpanan: <strong id="totalSimpananTable">Rp 0</strong></span>
+                                <span><i class="fas fa-sync-alt"></i> Terakhir Update: <strong id="lastUpdateTime">-</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simpanan Anggota Tab -->
+                <div class="tab-content" id="simpanan">
+                    <div class="page-title">
+                        <h1>Simpanan Anggota</h1>
+                        <button class="btn btn-primary" id="addSimpananBtn"><i class="fas fa-plus"></i> Tambah Simpanan</button>
+                    </div>
+
+                    <div class="tabs">
+                        <div class="tab active" data-simpanan-tab="pokok">Simpanan Pokok</div>
+                        <div class="tab" data-simpanan-tab="wajib">Simpanan Wajib</div>
+                        <div class="tab" data-simpanan-tab="sukarela">Simpanan Sukarela</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="section-header">
+                            <h2 id="simpananTitle">Daftar Simpanan Pokok</h2>
+                            <div class="search-bar">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Cari simpanan..." id="searchSimpanan">
+                            </div>
+                        </div>
+                        <table id="simpananTable">
+                            <thead>
+                                <tr>
+                                    <th>ID Anggota</th>
+                                    <th>Nama</th>
+                                    <th>Jenis Simpanan</th>
+                                    <th>Tanggal Setor</th>
+                                    <th>Nominal</th>
+                                    <th>Total Akumulasi</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data akan diisi secara dinamis -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pinjaman & Angsuran Tab -->
+                <div class="tab-content" id="pinjaman">
+                    <div class="page-title">
+                        <h1>Pinjaman & Angsuran</h1>
+                        <button class="btn btn-primary" id="addPinjamanBtn"><i class="fas fa-plus"></i> Tambah Pinjaman</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="section-header">
+                            <h2>Daftar Pinjaman</h2>
+                            <div class="search-bar">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Cari pinjaman..." id="searchPinjaman">
+                            </div>
+                        </div>
+                        <table id="pinjamanFullTable">
+                            <thead>
+                                <tr>
+                                    <th>ID Pinjaman</th>
+                                    <th>Nama Anggota</th>
+                                    <th>Jumlah Pinjaman</th>
+                                    <th>Tanggal Pinjam</th>
+                                    <th>Jangka Waktu</th>
+                                    <th>Bunga</th>
+                                    <th>Sisa Hutang</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data akan diisi secara dinamis -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Laporan Keuangan Tab -->
+                <div class="tab-content" id="laporan">
+                    <div class="page-title">
+                        <h1>Laporan Keuangan</h1>
+                        <button class="btn btn-primary" id="cetakLaporanBtn"><i class="fas fa-download"></i> Cetak Laporan</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="section-header">
+                            <h2>Laporan Neraca</h2>
+                        </div>
+                        <table id="neracaTable">
+                            <thead>
+                                <tr>
+                                    <th>Keterangan</th>
+                                    <th>Jumlah</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data akan diisi secara dinamis -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Unit Usaha Tab -->
+                <div class="tab-content" id="unit-usaha">
+                    <div class="page-title">
+                        <h1>Unit Usaha / Toko Koperasi</h1>
+                        <button class="btn btn-primary" id="addBarangBtn"><i class="fas fa-plus"></i> Tambah Barang</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="section-header">
+                            <h2>Data Stok Barang</h2>
+                        </div>
+                        <table id="barangTable">
+                            <thead>
+                                <tr>
+                                    <th>Kode Barang</th>
+                                    <th>Nama Barang</th>
+                                    <th>Stok</th>
+                                    <th>Harga Beli</th>
+                                    <th>Harga Jual</th>
+                                    <th>Laba</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data akan diisi secara dinamis -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Laporan SHU Tab -->
+                <div class="tab-content" id="shu">
+                    <div class="page-title">
+                        <h1>Laporan SHU (Sisa Hasil Usaha)</h1>
+                        <button class="btn btn-primary" id="cetakSHUBtn"><i class="fas fa-print"></i> Cetak Laporan</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="section-header">
+                            <h2>Pembagian SHU Tahun 2023</h2>
+                        </div>
+                        <table id="shuTable">
+                            <thead>
+                                <tr>
+                                    <th>Keterangan</th>
+                                    <th>Persentase</th>
+                                    <th>Jumlah</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data akan diisi secara dinamis -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pengaturan Tab -->
+                <div class="tab-content" id="pengaturan">
+                    <div class="page-title">
+                        <h1>Pengaturan Sistem & User</h1>
+                    </div>
+
+                    <div class="card">
+                        <div class="section-header">
+                            <h2>Data Admin</h2>
+                        </div>
+                        <form id="adminForm">
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" id="username" class="form-control" value="admin_koperasi">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" class="form-control" value="admin@koperasiasmaratani.id">
+                            </div>
+                            <div class="form-group">
+                                <label for="role">Role</label>
+                                <select id="role" class="form-control">
+                                    <option value="admin">Admin</option>
+                                    <option value="pengurus">Pengurus</option>
+                                    <option value="bendahara">Bendahara</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="foto">Ganti Foto Profil</label>
+                                <input type="file" id="foto" class="form-control" accept="image/*">
+                            </div>
+                            <div class="form-group">
+                                <label for="norek">No Rekening Admin</label>
+                                <input type="text" id="norek" class="form-control" placeholder="Masukkan nomor rekening" value="1234-5678-9012-3456">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="window.location.href='tabungan-digital.html'">
+                        <i class="fas fa-file-alt"></i> Tabungan Digital
+                    </button>
+                    <button class="btn btn-outline" onclick="window.location.href='#'">
+                        <i class="fas fa-landmark"></i> Space
+                    </button>
+                    <button class="btn btn-outline" onclick="window.location.href='#'">
+                        <i class="fas fa-landmark"></i> Space
+                    </button>
+                </div>
+
+                <!-- Footer -->
+                <div class="footer">
+                    <p>&copy; 2025 Koperasi Asmara Tani – Dashboard Admin dengan Real-time Sync</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MODAL-MODAL BARU ========== -->
+
+    <!-- Modal Tambah Anggota -->
+    <div class="modal" id="addMemberModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="memberModalTitle">Tambah Anggota Baru</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="memberForm">
+                    <input type="hidden" id="memberId">
+                    <div class="form-group">
+                        <label for="posisi">Posisi <span class="required">*</span></label>
+                        <select id="posisi" class="form-control" required>
+                            <option value="">Pilih Posisi</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Pengurus">Pengurus</option>
+                            <option value="Anggota">Anggota</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="nama">Nama Lengkap <span class="required">*</span></label>
+                        <input type="text" id="nama" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="alamat">Alamat Lengkap <span class="required">*</span></label>
+                        <textarea id="alamat" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="jenisKelamin">Jenis Kelamin <span class="required">*</span></label>
+                        <select id="jenisKelamin" class="form-control" required>
+                            <option value="">Pilih Jenis Kelamin</option>
+                            <option value="Laki-laki">Laki-laki</option>
+                            <option value="Perempuan">Perempuan</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="agama">Agama <span class="required">*</span></label>
+                        <select id="agama" class="form-control" required>
+                            <option value="">Pilih Agama</option>
+                            <option value="Islam">Islam</option>
+                            <option value="Kristen">Kristen</option>
+                            <option value="Hindu">Hindu</option>
+                            <option value="Budha">Budha</option>
+                            <option value="Konghucu">Konghucu</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status <span class="required">*</span></label>
+                        <select id="status" class="form-control" required>
+                            <option value="">Pilih Status</option>
+                            <option value="Menikah">Menikah</option>
+                            <option value="Belum Menikah">Belum Menikah</option>
+                            <option value="Duda">Duda</option>
+                            <option value="Janda">Janda</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Alamat Email <span class="required">*</span></label>
+                        <input type="email" id="emailMember" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="whatsapp">No WhatsApp <span class="required">*</span></label>
+                        <input type="text" id="whatsapp" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nik">No NIK KTP <span class="required">*</span></label>
+                        <input type="text" id="nik" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="foto">Upload Foto Anda <span class="required">*</span></label>
+                        <input type="file" id="fotoMember" class="form-control" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label for="buktiTransfer">Upload Bukti Transfer (Opsional)</label>
+                        <input type="file" id="buktiTransfer" class="form-control" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Daftar</label>
+                        <input type="text" id="tanggalDaftar" class="form-control" readonly>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelMemberBtn">Batal</button>
+                <button class="btn btn-primary" id="saveMemberBtn">SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Simpanan -->
+    <div class="modal" id="addSimpananModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="simpananModalTitle">Tambah Simpanan</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="simpananForm">
+                    <input type="hidden" id="simpananId">
+                    <div class="form-group">
+                        <label for="idAnggotaSimpanan">ID Anggota <span class="required">*</span></label>
+                        <select id="idAnggotaSimpanan" class="form-control" required>
+                            <option value="">Pilih Anggota</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="jenisSimpanan">Jenis Simpanan <span class="required">*</span></label>
+                        <select id="jenisSimpanan" class="form-control" required>
+                            <option value="">Pilih Jenis</option>
+                            <option value="Pokok">Pokok</option>
+                            <option value="Wajib">Wajib</option>
+                            <option value="Sukarela">Sukarela</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tanggalSimpanan">Tanggal Setor <span class="required">*</span></label>
+                        <input type="date" id="tanggalSimpanan" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nominalSimpanan">Nominal <span class="required">*</span></label>
+                        <input type="number" id="nominalSimpanan" class="form-control" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelSimpananBtn">Batal</button>
+                <button class="btn btn-primary" id="saveSimpananBtn">SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Update Simpanan Real-time -->
+    <div id="updateSimpananModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-money-bill-wave"></i> Update Simpanan</h3>
+                <button class="modal-close" onclick="closeUpdateModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="anggota-modal-info" id="modalAnggotaInfo">
+                    <!-- Info anggota akan diisi -->
+                </div>
+                
+                <form id="updateSimpananForm">
+                    <div class="form-group">
+                        <label for="updatePokok">Simpanan Pokok (Rp)</label>
+                        <input type="number" id="updatePokok" class="form-control" 
+                               min="0" step="1000" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="updateWajib">Simpanan Wajib (Rp)</label>
+                        <input type="number" id="updateWajib" class="form-control" 
+                               min="0" step="1000" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="updateSukarela">Simpanan Sukarela (Rp)</label>
+                        <input type="number" id="updateSukarela" class="form-control" 
+                               min="0" step="1000" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="updateCatatan">Catatan (Opsional)</label>
+                        <textarea id="updateCatatan" class="form-control" rows="2" 
+                                  placeholder="Contoh: Setoran tunai, transfer, dll"></textarea>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="closeUpdateModal()">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Pinjaman -->
+    <div class="modal" id="addPinjamanModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="pinjamanModalTitle">Tambah Pinjaman</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="pinjamanForm">
+                    <input type="hidden" id="pinjamanId">
+                    <div class="form-group">
+                        <label for="idAnggotaPinjaman">ID Anggota <span class="required">*</span></label>
+                        <select id="idAnggotaPinjaman" class="form-control" required>
+                            <option value="">Pilih Anggota</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="jumlahPinjaman">Jumlah Pinjaman <span class="required">*</span></label>
+                        <input type="number" id="jumlahPinjaman" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tanggalPinjaman">Tanggal Pinjam <span class="required">*</span></label>
+                        <input type="date" id="tanggalPinjaman" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="jangkaWaktu">Jangka Waktu <span class="required">*</span></label>
+                        <select id="jangkaWaktu" class="form-control" required>
+                            <option value="">Pilih Jangka Waktu</option>
+                            <option value="6 Bulan">6 Bulan</option>
+                            <option value="12 Bulan">12 Bulan</option>
+                            <option value="24 Bulan">24 Bulan</option>
+                            <option value="36 Bulan">36 Bulan</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bungaPinjaman">Bunga (%) <span class="required">*</span></label>
+                        <input type="number" id="bungaPinjaman" class="form-control" step="0.1" value="1.5" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelPinjamanBtn">Batal</button>
+                <button class="btn btn-primary" id="savePinjamanBtn">SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Barang -->
+    <div class="modal" id="addBarangModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="barangModalTitle">Tambah Barang</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="barangForm">
+                    <input type="hidden" id="barangId">
+                    <div class="form-group">
+                        <label for="namaBarang">Nama Barang <span class="required">*</span></label>
+                        <input type="text" id="namaBarang" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="stokBarang">Stok <span class="required">*</span></label>
+                        <input type="number" id="stokBarang" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="hargaBeli">Harga Beli <span class="required">*</span></label>
+                        <input type="number" id="hargaBeli" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="hargaJual">Harga Jual <span class="required">*</span></label>
+                        <input type="number" id="hargaJual" class="form-control" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelBarangBtn">Batal</button>
+                <button class="btn btn-primary" id="saveBarangBtn">SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Hapus -->
+    <div class="confirm-modal" id="confirmModal">
+        <div class="confirm-content">
+            <div class="confirm-header">
+                <h3>Konfirmasi Hapus</h3>
+            </div>
+            <div class="confirm-body">
+                <p id="confirmMessage">Apakah Anda yakin ingin menghapus data ini?</p>
+            </div>
+            <div class="confirm-footer">
+                <button class="btn btn-outline" id="cancelDeleteBtn">Batal</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Import Excel -->
+    <div class="modal" id="importExcelModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Import Data dari Excel</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="excelFile">Pilih File Excel</label>
+                    <input type="file" id="excelFile" class="form-control" accept=".xlsx, .xls">
+                </div>
+                <div class="form-group">
+                    <label for="importType">Jenis Data</label>
+                    <select id="importType" class="form-control">
+                        <option value="anggota">Data Anggota</option>
+                        <option value="simpanan">Data Simpanan</option>
+                        <option value="pinjaman">Data Pinjaman</option>
+                        <option value="barang">Data Barang</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelImportBtn">Batal</button>
+                <button class="btn btn-primary" id="confirmImportBtn">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sync Log -->
+    <div id="syncLogModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-history"></i> Log Sinkronisasi</h3>
+                <button class="modal-close" onclick="closeSyncLogModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="log-actions">
+                    <button class="btn btn-sm btn-outline" onclick="exportSyncLog()">
+                        <i class="fas fa-download"></i> Export Log
+                    </button>
+                    <button class="btn btn-sm btn-outline btn-danger" onclick="clearSyncLog()">
+                        <i class="fas fa-trash"></i> Hapus Log
+                    </button>
+                </div>
+                
+                <div class="log-list" id="syncLogList">
+                    <!-- Log akan diisi -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kartu Cetak Anggota -->
+    <div class="print-card" id="printCard">
+        <div style="text-align: center; padding: 20px; border: 2px solid #000;">
+            <h2>KOPERASI ASMARA TANI</h2>
+            <p>#koperasijenius</p>
+            <hr>
+            <div id="cardContent">
+                <!-- Konten kartu akan diisi secara dinamis -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SCRIPT UTAMA ========== -->
+    <script>
+    // ===== STRUKTUR DATA TERPUSAT =====
+    function initializeKoperasiData() {
+      if (!localStorage.getItem('koperasiData')) {
+        const initialData = {
+          version: '2.0',
+          lastSync: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          anggotaData: [],
+          adminUpdates: {},
+          userUpdates: {},
+          syncLog: [],
+          settings: {
+            minSimpanan: 10000,
+            minPinjaman: 100000,
+            bungaPinjaman: 1.2,
+            adminWhatsapp: '085218483129'
+          }
+        };
+        localStorage.setItem('koperasiData', JSON.stringify(initialData));
+      }
+      
+      if (!localStorage.getItem('anggotaData')) {
+        localStorage.setItem('anggotaData', JSON.stringify([]));
+      }
+      
+      if (!localStorage.getItem('adminUpdates')) {
+        localStorage.setItem('adminUpdates', JSON.stringify({}));
+      }
+    }
+
+    // ===== SINKRONISASI REAL-TIME MANAGER =====
+    class DataSyncManager {
+        constructor() {
+            this.syncInterval = 3000;
+            this.isSyncing = false;
+            this.syncTimeout = null;
+            this.init();
+        }
+        
+        init() {
+            console.log('Sync Manager Initialized');
+            
+            this.startSync();
+            
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'koperasiData' || e.key === 'adminUpdates' || e.key === 'anggotaData') {
+                    console.log('Storage changed:', e.key);
+                    this.onDataChanged(e.key);
+                }
+            });
+            
+            window.addEventListener('beforeunload', () => {
+                if (this.syncTimeout) {
+                    clearTimeout(this.syncTimeout);
+                }
+            });
+        }
+        
+        startSync() {
+            setTimeout(() => this.syncData(), 1000);
+            
+            this.syncTimeout = setInterval(() => {
+                if (!this.isSyncing) {
+                    this.syncData();
+                }
+            }, this.syncInterval);
+        }
+        
+        syncData() {
+            if (this.isSyncing) {
+                console.log('Sync already in progress, skipping...');
+                return;
+            }
+            
+            this.isSyncing = true;
+            console.log('Starting data sync...');
+            
+            try {
+                const koperasiData = JSON.parse(localStorage.getItem('koperasiData')) || {};
+                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                
+                koperasiData.lastSync = new Date().toISOString();
+                koperasiData.syncCount = (koperasiData.syncCount || 0) + 1;
+                
+                this.logSync('SYNC_START', 'Memulai sinkronisasi data');
+                
+                if (currentUser) {
+                    if (currentUser.role === 'admin') {
+                        this.pushAdminUpdates(koperasiData);
+                    } else {
+                        this.pullAdminUpdates(koperasiData, currentUser.email);
+                    }
+                }
+                
+                localStorage.setItem('koperasiData', JSON.stringify(koperasiData));
+                
+                this.logSync('SYNC_SUCCESS', 'Sinkronisasi berhasil');
+                console.log('Data sync completed successfully');
+                
+                this.showSyncIndicator('success');
+                
+                // Trigger custom event untuk update UI
+                window.dispatchEvent(new CustomEvent('syncDataChanged', {
+                    detail: { type: 'success', timestamp: new Date().toISOString() }
+                }));
+                
+            } catch (error) {
+                console.error('Sync Error:', error);
+                this.logSync('SYNC_ERROR', error.message);
+                this.showSyncIndicator('error');
+            } finally {
+                this.isSyncing = false;
+            }
+        }
+        
+        pushAdminUpdates(koperasiData) {
+            const adminUpdates = JSON.parse(localStorage.getItem('adminUpdates')) || {};
+            
+            if (Object.keys(adminUpdates).length > 0) {
+                console.log('Pushing admin updates:', Object.keys(adminUpdates).length, 'updates');
+                
+                koperasiData.adminUpdates = { 
+                    ...koperasiData.adminUpdates, 
+                    ...adminUpdates 
+                };
+                
+                koperasiData.lastAdminPush = new Date().toISOString();
+                
+                this.logSync('ADMIN_PUSH', `Push ${Object.keys(adminUpdates).length} updates`);
+                
+                localStorage.setItem('adminUpdates', JSON.stringify({}));
+            }
+        }
+        
+        pullAdminUpdates(koperasiData, userEmail) {
+            if (koperasiData.adminUpdates && koperasiData.adminUpdates[userEmail]) {
+                console.log('Pulling updates for:', userEmail);
+                
+                const updates = koperasiData.adminUpdates[userEmail];
+                const semuaAnggota = JSON.parse(localStorage.getItem('anggotaData')) || [];
+                const userIndex = semuaAnggota.findIndex(a => a.email === userEmail);
+                
+                if (userIndex !== -1) {
+                    let updated = false;
+                    
+                    if (updates.simpanan) {
+                        Object.keys(updates.simpanan).forEach(jenis => {
+                            if (semuaAnggota[userIndex].simpanan) {
+                                semuaAnggota[userIndex].simpanan[jenis] = {
+                                    ...semuaAnggota[userIndex].simpanan[jenis],
+                                    ...updates.simpanan[jenis],
+                                    updatedAt: new Date().toISOString()
+                                };
+                                updated = true;
+                            }
+                        });
+                        
+                        if (semuaAnggota[userIndex].simpanan) {
+                            semuaAnggota[userIndex].simpanan.total = 
+                                (semuaAnggota[userIndex].simpanan.pokok?.nominal || 0) +
+                                (semuaAnggota[userIndex].simpanan.wajib?.nominal || 0) +
+                                (semuaAnggota[userIndex].simpanan.sukarela?.nominal || 0);
+                        }
+                    }
+                    
+                    if (updates.personal) {
+                        semuaAnggota[userIndex] = {
+                            ...semuaAnggota[userIndex],
+                            ...updates.personal,
+                            updatedAt: new Date().toISOString()
+                        };
+                        updated = true;
+                    }
+                    
+                    semuaAnggota[userIndex].lastUpdated = new Date().toISOString();
+                    semuaAnggota[userIndex].updatedBy = 'admin';
+                    
+                    if (updated) {
+                        localStorage.setItem('anggotaData', JSON.stringify(semuaAnggota));
+                        
+                        this.triggerUIUpdate(userEmail, updates);
+                        
+                        this.logSync('USER_UPDATE', `Data diperbarui untuk ${userEmail}`);
+                        
+                        this.showNotification('Data diperbarui oleh admin!', 'info');
+                    }
+                    
+                    delete koperasiData.adminUpdates[userEmail];
+                    
+                    this.logSync('UPDATE_CLEARED', `Update cleared for ${userEmail}`);
+                }
+            }
+        }
+        
+        triggerUIUpdate(userEmail, updates) {
+            const event = new CustomEvent('dataSynced', {
+                detail: { 
+                    email: userEmail,
+                    updates: updates,
+                    timestamp: new Date().toISOString(),
+                    source: 'admin_sync'
+                }
+            });
+            window.dispatchEvent(event);
+            
+            if (window.tabungan) {
+                const tabunganEvent = new CustomEvent('tabunganDataUpdated', {
+                    detail: { email: userEmail }
+                });
+                window.dispatchEvent(tabunganEvent);
+            }
+        }
+        
+        showNotification(message, type = 'info') {
+            if (window.tabungan && window.tabungan.showToast) {
+                window.tabungan.showToast(message, type);
+            } else if (window.showNotification) {
+                window.showNotification(message, type);
+            } else {
+                console.log(`[${type.toUpperCase()}] ${message}`);
+            }
+        }
+        
+        showSyncIndicator(status) {
+            const indicator = document.getElementById('syncIndicator');
+            if (!indicator) return;
+            
+            indicator.classList.remove('syncing', 'success', 'error');
+            
+            if (status === 'syncing') {
+                indicator.classList.add('syncing');
+                indicator.title = 'Menyinkronkan data...';
+            } else if (status === 'success') {
+                indicator.classList.add('success');
+                indicator.title = 'Data tersinkron ' + new Date().toLocaleTimeString();
+                
+                setTimeout(() => {
+                    indicator.classList.remove('success');
+                }, 2000);
+            } else if (status === 'error') {
+                indicator.classList.add('error');
+                indicator.title = 'Gagal sinkronisasi';
+                
+                setTimeout(() => {
+                    indicator.classList.remove('error');
+                }, 5000);
+            }
+        }
+        
+        logSync(type, message) {
+            const log = {
+                type,
+                message,
+                timestamp: new Date().toISOString(),
+                user: JSON.parse(localStorage.getItem('currentUser'))?.email || 'system',
+                userAgent: navigator.userAgent
+            };
+            
+            const koperasiData = JSON.parse(localStorage.getItem('koperasiData')) || {};
+            koperasiData.syncLog = koperasiData.syncLog || [];
+            koperasiData.syncLog.push(log);
+            
+            if (koperasiData.syncLog.length > 50) {
+                koperasiData.syncLog = koperasiData.syncLog.slice(-50);
+            }
+            
+            localStorage.setItem('koperasiData', JSON.stringify(koperasiData));
+        }
+        
+        onDataChanged(key) {
+            console.log(`Data changed: ${key}`);
+            
+            if (key === 'anggotaData') {
+                if (window.loadAnggotaData) {
+                    window.loadAnggotaData();
+                }
+                if (window.refreshAnggotaTable) {
+                    window.refreshAnggotaTable();
+                }
+            }
+            
+            if (window.tabungan && window.tabungan.updateProfileUI) {
+                window.tabungan.updateProfileUI();
+            }
+            
+            const event = new CustomEvent('localStorageChanged', {
+                detail: { key: key }
+            });
+            window.dispatchEvent(event);
+        }
+        
+        manualSync() {
+            console.log('Manual sync triggered');
+            this.showSyncIndicator('syncing');
+            this.syncData();
+        }
+        
+        getSyncStatus() {
+            const koperasiData = JSON.parse(localStorage.getItem('koperasiData')) || {};
+            return {
+                lastSync: koperasiData.lastSync || 'Never',
+                syncCount: koperasiData.syncCount || 0,
+                pendingUpdates: Object.keys(koperasiData.adminUpdates || {}).length,
+                logCount: (koperasiData.syncLog || []).length
+            };
+        }
+    }
+
+    // ===== GLOBAL VARIABLES =====
+    let syncManager = null;
+    let currentAdmin = null;
+    let semuaAnggota = [];
+    let selectedAnggotaEmail = null;
+
+    // ===== INITIALIZATION =====
+    function initializeAdminDashboard() {
+        console.log('🚀 Initializing Admin Dashboard with Real-time Sync');
+        
+        // Check login
+        currentAdmin = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentAdmin || currentAdmin.role !== 'admin') {
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        // Initialize data structure
+        initializeKoperasiData();
+        
+        // Update admin name
+        document.getElementById('adminName').textContent = currentAdmin.name || 'Admin';
+        document.getElementById('topNavUsername').textContent = currentAdmin.name || 'Admin';
+        document.getElementById('topNavRole').textContent = currentAdmin.role || 'Admin';
+        
+        // Initialize Sync Manager
+        initializeSyncManager();
+        
+        // Load data
+        loadAnggotaData();
+        
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Create UI elements
+        createUIElements();
+        
+        // Start periodic updates
+        startPeriodicUpdates();
+        
+        console.log('✅ Admin Dashboard initialized successfully');
+    }
+
+    function initializeSyncManager() {
+        try {
+            syncManager = new DataSyncManager();
+            window.syncManager = syncManager;
+            
+            // Update sync status UI
+            updateSyncStatusUI();
+            
+            console.log('✅ Sync Manager initialized');
+        } catch (error) {
+            console.error('❌ Error initializing Sync Manager:', error);
+            showNotification('Gagal menginisialisasi sinkronisasi', 'error');
+        }
+    }
+
+    // ===== DATA MANAGEMENT =====
+    function loadAnggotaData() {
+        console.log('📊 Loading anggota data...');
+        
+        try {
+            semuaAnggota = JSON.parse(localStorage.getItem('anggotaData')) || [];
+            
+            // Jika tidak ada data, buat dummy data untuk testing
+            if (semuaAnggota.length === 0) {
+                createDummyData();
+                semuaAnggota = JSON.parse(localStorage.getItem('anggotaData')) || [];
+            }
+            
+            // Update table
+            renderAnggotaTable();
+            
+            // Update stats
+            updateAdminStats();
+            
+            console.log(`✅ Loaded ${semuaAnggota.length} anggota`);
+            
+        } catch (error) {
+            console.error('❌ Error loading data:', error);
+            showNotification('Gagal memuat data anggota', 'error');
+        }
+    }
+
+    function createDummyData() {
+        const dummyData = [
+            {
+                id: 'NIA001',
+                nama: 'Budi Santoso',
+                email: 'budi@gmail.com',
+                whatsapp: '081234567890',
+                posisi: 'Anggota',
+                statusAktif: 'Aktif',
+                simpanan: {
+                    pokok: { nominal: 200000, status: 'lunas' },
+                    wajib: { nominal: 20000, status: 'aktif', terakhirBayar: 'Mar 2025' },
+                    sukarela: { nominal: 1500000, status: 'tersedia' },
+                    total: 1720000
+                },
+                pinjaman: { total: 0, aktif: [] },
+                shu: { estimasi: 320000, status: 'Dalam perhitungan' }
+            },
+            {
+                id: 'NIA002',
+                nama: 'Siti Rahayu',
+                email: 'siti@gmail.com',
+                whatsapp: '081298765432',
+                posisi: 'Pengurus',
+                statusAktif: 'Aktif',
+                simpanan: {
+                    pokok: { nominal: 200000, status: 'lunas' },
+                    wajib: { nominal: 20000, status: 'aktif', terakhirBayar: 'Mar 2025' },
+                    sukarela: { nominal: 2500000, status: 'tersedia' },
+                    total: 2720000
+                },
+                pinjaman: { total: 5000000, aktif: [{ jenis: 'produktif', total: 5000000 }] },
+                shu: { estimasi: 450000, status: 'Dalam perhitungan' }
+            }
+        ];
+        
+        localStorage.setItem('anggotaData', JSON.stringify(dummyData));
+        console.log('📝 Created dummy data for testing');
+    }
+
+    function renderAnggotaTable() {
+        const tbody = document.getElementById('anggotaTableBody');
+        if (!tbody) return;
+        
+        if (semuaAnggota.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="10" class="empty-row">
+                        <i class="fas fa-users-slash"></i>
+                        <div>Tidak ada data anggota</div>
+                        <button class="btn-small" onclick="tambahAnggota()">Tambah Anggota</button>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        let html = '';
+        
+        semuaAnggota.forEach((anggota, index) => {
+            const totalSimpanan = anggota.simpanan?.total || 0;
+            const totalPinjaman = anggota.pinjaman?.total || 0;
+            
+            html += `
+                <tr data-email="${anggota.email}" data-index="${index}">
+                    <td>${index + 1}</td>
+                    <td class="nama-cell">
+                        <strong>${anggota.nama || '-'}</strong>
+                        <div class="email-small">${anggota.email}</div>
+                    </td>
+                    <td>${anggota.id || '-'}</td>
+                    <td>${anggota.email || '-'}</td>
+                    
+                    <!-- Simpanan Pokok -->
+                    <td class="simpanan-cell">
+                        <div class="input-group">
+                            <input type="number" 
+                                   id="pokok-${anggota.email}"
+                                   value="${anggota.simpanan?.pokok?.nominal || 0}"
+                                   class="simpanan-input"
+                                   onchange="updateSimpananSingle('${anggota.email}', 'pokok', this.value)">
+                            <span class="currency">Rp</span>
+                        </div>
+                    </td>
+                    
+                    <!-- Simpanan Wajib -->
+                    <td class="simpanan-cell">
+                        <div class="input-group">
+                            <input type="number"
+                                   id="wajib-${anggota.email}"
+                                   value="${anggota.simpanan?.wajib?.nominal || 0}"
+                                   class="simpanan-input"
+                                   onchange="updateSimpananSingle('${anggota.email}', 'wajib', this.value)">
+                            <span class="currency">Rp</span>
+                        </div>
+                        <div class="last-update">
+                            ${anggota.simpanan?.wajib?.terakhirBayar || ''}
+                        </div>
+                    </td>
+                    
+                    <!-- Simpanan Sukarela -->
+                    <td class="simpanan-cell">
+                        <div class="input-group">
+                            <input type="number"
+                                   id="sukarela-${anggota.email}"
+                                   value="${anggota.simpanan?.sukarela?.nominal || 0}"
+                                   class="simpanan-input"
+                                   onchange="updateSimpananSingle('${anggota.email}', 'sukarela', this.value)">
+                            <span class="currency">Rp</span>
+                        </div>
+                    </td>
+                    
+                    <!-- Total -->
+                    <td class="total-cell">
+                        <strong>Rp ${formatNumber(totalSimpanan)}</strong>
+                    </td>
+                    
+                    <!-- Status -->
+                    <td>
+                        <span class="status-badge ${anggota.statusAktif === 'Aktif' ? 'active' : 'inactive'}">
+                            ${anggota.statusAktif || 'Tidak Aktif'}
+                        </span>
+                    </td>
+                    
+                    <!-- Actions -->
+                    <td class="actions-cell">
+                        <button class="btn-action btn-view" 
+                                onclick="viewAnggotaDetail('${anggota.email}')"
+                                title="Lihat detail">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-action btn-edit"
+                                onclick="openEditProfilModal('${anggota.email}')"
+                                title="Edit profil">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-action btn-update"
+                                onclick="openUpdateModal('${anggota.email}')"
+                                title="Update simpanan">
+                            <i class="fas fa-money-bill"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        tbody.innerHTML = html;
+        
+        // Update stats
+        document.getElementById('totalAnggotaTable').textContent = semuaAnggota.length;
+        const totalSimpanan = semuaAnggota.reduce((sum, a) => sum + (a.simpanan?.total || 0), 0);
+        document.getElementById('totalSimpananTable').textContent = 'Rp ' + formatNumber(totalSimpanan);
+        
+        // Update last update time
+        const lastUpdate = semuaAnggota.reduce((latest, a) => {
+            const date = a.lastUpdated ? new Date(a.lastUpdated) : new Date(0);
+            return date > latest ? date : latest;
+        }, new Date(0));
+        
+        document.getElementById('lastUpdateTime').textContent = 
+            lastUpdate > new Date(0) ? lastUpdate.toLocaleTimeString() : '-';
+    }
+
+    // ===== UPDATE FUNCTIONS =====
+    function updateSimpananSingle(email, jenis, nilai) {
+        console.log(`🔄 Updating ${jenis} for ${email}: ${nilai}`);
+        
+        if (!email || !jenis) {
+            showNotification('Data tidak valid', 'error');
+            return;
+        }
+        
+        const numericValue = parseInt(nilai) || 0;
+        
+        if (numericValue < 0) {
+            showNotification('Nilai tidak boleh negatif', 'error');
+            return;
+        }
+        
+        const updates = {
+            simpanan: {
+                [jenis]: {
+                    nominal: numericValue,
+                    lastUpdate: new Date().toISOString(),
+                    status: jenis === 'pokok' ? 'lunas' : 'aktif'
+                }
+            }
+        };
+        
+        // Update data lokal
+        updateAnggotaData(email, updates);
+        
+        // Show visual feedback
+        const row = document.querySelector(`tr[data-email="${email}"]`);
+        if (row) {
+            row.classList.add('updated-row');
+            setTimeout(() => row.classList.remove('updated-row'), 2000);
+        }
+    }
+
+    function updateAnggotaData(email, updates) {
+        try {
+            console.log(`📝 Updating ${email}:`, updates);
+            
+            // 1. Update local data
+            const index = semuaAnggota.findIndex(a => a.email === email);
+            if (index !== -1) {
+                // Apply updates
+                if (updates.simpanan) {
+                    semuaAnggota[index].simpanan = {
+                        ...semuaAnggota[index].simpanan,
+                        ...updates.simpanan
+                    };
+                    
+                    // Recalculate total
+                    semuaAnggota[index].simpanan.total = 
+                        (semuaAnggota[index].simpanan.pokok?.nominal || 0) +
+                        (semuaAnggota[index].simpanan.wajib?.nominal || 0) +
+                        (semuaAnggota[index].simpanan.sukarela?.nominal || 0);
+                }
+                
+                if (updates.personal) {
+                    semuaAnggota[index] = {
+                        ...semuaAnggota[index],
+                        ...updates.personal
+                    };
+                }
+                
+                // Update metadata
+                semuaAnggota[index].lastUpdated = new Date().toISOString();
+                semuaAnggota[index].updatedBy = currentAdmin.email;
+                
+                // Save to localStorage
+                localStorage.setItem('anggotaData', JSON.stringify(semuaAnggota));
+                
+                // 2. Add to admin updates for sync
+                const adminUpdates = JSON.parse(localStorage.getItem('adminUpdates')) || {};
+                adminUpdates[email] = {
+                    ...adminUpdates[email],
+                    ...updates,
+                    timestamp: new Date().toISOString(),
+                    updatedBy: currentAdmin.email
+                };
+                localStorage.setItem('adminUpdates', JSON.stringify(adminUpdates));
+                
+                // 3. Update central data
+                updateCentralData();
+                
+                // 4. Trigger sync
+                if (syncManager) {
+                    syncManager.manualSync();
+                }
+                
+                // 5. Update UI
+                renderAnggotaTable();
+                updateAdminStats();
+                
+                // 6. Show success
+                showNotification('Data berhasil diupdate!', 'success');
+                
+                return true;
+            } else {
+                showNotification('Anggota tidak ditemukan', 'error');
+                return false;
+            }
+            
+        } catch (error) {
+            console.error('❌ Update error:', error);
+            showNotification('Gagal update data: ' + error.message, 'error');
+            return false;
+        }
+    }
+
+    function updateCentralData() {
+        try {
+            const koperasiData = JSON.parse(localStorage.getItem('koperasiData')) || {};
+            koperasiData.anggotaData = semuaAnggota;
+            koperasiData.lastUpdate = new Date().toISOString();
+            koperasiData.updatedBy = currentAdmin.email;
+            
+            localStorage.setItem('koperasiData', JSON.stringify(koperasiData));
+            
+            console.log('🔄 Central data updated');
+        } catch (error) {
+            console.error('❌ Error updating central data:', error);
+        }
+    }
+
+    // ===== MODAL FUNCTIONS =====
+    function openUpdateModal(email) {
+        const anggota = semuaAnggota.find(a => a.email === email);
+        if (!anggota) return;
+        
+        selectedAnggotaEmail = email;
+        
+        // Update modal info
+        document.getElementById('modalAnggotaInfo').innerHTML = `
+            <div class="anggota-modal-info">
+                <h4>${anggota.nama}</h4>
+                <p>NIA: ${anggota.id || '-'} | Email: ${anggota.email}</p>
+                <p>Total Simpanan Saat Ini: <strong>Rp ${formatNumber(anggota.simpanan?.total || 0)}</strong></p>
+            </div>
+        `;
+        
+        // Set current values
+        document.getElementById('updatePokok').value = anggota.simpanan?.pokok?.nominal || 0;
+        document.getElementById('updateWajib').value = anggota.simpanan?.wajib?.nominal || 0;
+        document.getElementById('updateSukarela').value = anggota.simpanan?.sukarela?.nominal || 0;
+        
+        // Show modal
+        document.getElementById('updateSimpananModal').style.display = 'flex';
+    }
+
+    function closeUpdateModal() {
+        document.getElementById('updateSimpananModal').style.display = 'none';
+        selectedAnggotaEmail = null;
+        document.getElementById('updateSimpananForm').reset();
+    }
+
+    function openEditProfilModal(email) {
+        const anggota = semuaAnggota.find(a => a.email === email);
+        if (!anggota) return;
+        
+        // Implementasi modal edit profil
+        showNotification('Fitur edit profil akan segera tersedia', 'info');
+    }
+
+    function viewAnggotaDetail(email) {
+        const anggota = semuaAnggota.find(a => a.email === email);
+        if (!anggota) return;
+        
+        const detail = `
+            Nama: ${anggota.nama}
+            NIA: ${anggota.id}
+            Email: ${anggota.email}
+            WhatsApp: ${anggota.whatsapp}
+            Posisi: ${anggota.posisi}
+            Status: ${anggota.statusAktif}
+            
+            SIMPANAN:
+            - Pokok: Rp ${formatNumber(anggota.simpanan?.pokok?.nominal || 0)}
+            - Wajib: Rp ${formatNumber(anggota.simpanan?.wajib?.nominal || 0)}
+            - Sukarela: Rp ${formatNumber(anggota.simpanan?.sukarela?.nominal || 0)}
+            - TOTAL: Rp ${formatNumber(anggota.simpanan?.total || 0)}
+            
+            PINJAMAN: Rp ${formatNumber(anggota.pinjaman?.total || 0)}
+            SHU Estimasi: Rp ${formatNumber(anggota.shu?.estimasi || 0)}
+            
+            Terakhir Update: ${anggota.lastUpdated || 'Belum pernah'}
+        `;
+        
+        alert(detail);
+    }
+
+    // ===== SYNC FUNCTIONS =====
+    function manualSync() {
+        if (syncManager) {
+            syncManager.manualSync();
+            showNotification('Memulai sinkronisasi manual...', 'info');
+        } else {
+            showNotification('Sync Manager belum diinisialisasi', 'error');
+        }
+    }
+
+    function updateSyncStatusUI() {
+        if (!syncManager) return;
+        
+        const status = syncManager.getSyncStatus();
+        
+        // Update text
+        const syncText = document.getElementById('syncStatusText');
+        const syncTime = document.getElementById('lastSyncTime');
+        
+        if (syncText && syncTime) {
+            if (status.lastSync === 'Never') {
+                syncText.textContent = 'Belum pernah sinkron';
+                syncTime.textContent = '';
+            } else {
+                const lastSync = new Date(status.lastSync);
+                const now = new Date();
+                const diff = Math.floor((now - lastSync) / 1000);
+                
+                if (diff < 60) {
+                    syncText.textContent = 'Tersinkron';
+                    syncTime.textContent = `${diff} detik lalu`;
+                } else if (diff < 3600) {
+                    syncText.textContent = 'Tersinkron';
+                    syncTime.textContent = `${Math.floor(diff / 60)} menit lalu`;
+                } else {
+                    syncText.textContent = 'Perlu sinkron';
+                    syncTime.textContent = lastSync.toLocaleTimeString();
+                }
+            }
+        }
+    }
+
+    function showSyncLog() {
+        const koperasiData = JSON.parse(localStorage.getItem('koperasiData')) || {};
+        const logs = koperasiData.syncLog || [];
+        
+        const logList = document.getElementById('syncLogList');
+        if (!logList) return;
+        
+        if (logs.length === 0) {
+            logList.innerHTML = '<div class="empty-log">Tidak ada log sinkronisasi</div>';
+        } else {
+            let html = '';
+            logs.slice().reverse().forEach((log, index) => {
+                const time = new Date(log.timestamp).toLocaleString('id-ID');
+                html += `
+                    <div class="log-item ${log.type.toLowerCase()}">
+                        <div class="log-header">
+                            <span class="log-type">${log.type}</span>
+                            <span class="log-time">${time}</span>
+                        </div>
+                        <div class="log-message">${log.message}</div>
+                        <div class="log-user">${log.user}</div>
+                    </div>
+                `;
+            });
+            logList.innerHTML = html;
+        }
+        
+        document.getElementById('syncLogModal').style.display = 'flex';
+    }
+
+    function closeSyncLogModal() {
+        document.getElementById('syncLogModal').style.display = 'none';
+    }
+
+    function clearSyncLog() {
+        if (confirm('Apakah Anda yakin ingin menghapus semua log sinkronisasi?')) {
+            const koperasiData = JSON.parse(localStorage.getItem('koperasiData')) || {};
+            koperasiData.syncLog = [];
+            localStorage.setItem('koperasiData', JSON.stringify(koperasiData));
+            
+            showNotification('Log berhasil dihapus', 'success');
+            showSyncLog(); // Refresh log display
+        }
+    }
+
+    // ===== UTILITY FUNCTIONS =====
+    function formatNumber(num) {
+        return new Intl.NumberFormat('id-ID').format(num);
+    }
+
+    function showNotification(message, type = 'info') {
+        const container = document.getElementById('notificationContainer');
+        if (!container) {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            return;
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="notification-close" onclick="this.parentElement.remove()">&times;</button>
+        `;
+        
+        container.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+
+    function updateAdminStats() {
+        const totalAnggota = semuaAnggota.length;
+        const totalAktif = semuaAnggota.filter(a => a.statusAktif === 'Aktif').length;
+        
+        const totalSimpanan = semuaAnggota.reduce((sum, a) => sum + (a.simpanan?.total || 0), 0);
+        const totalPinjaman = semuaAnggota.reduce((sum, a) => sum + (a.pinjaman?.total || 0), 0);
+        
+        // Update stats display
+        document.getElementById('totalAnggota').textContent = totalAnggota;
+        document.getElementById('totalSimpanan').textContent = 'Rp ' + formatNumber(totalSimpanan);
+        document.getElementById('totalPinjaman').textContent = 'Rp ' + formatNumber(totalPinjaman);
+        document.getElementById('totalSHU').textContent = 'Rp ' + formatNumber(totalSimpanan * 0.1); // 10% dari total simpanan
+        document.getElementById('totalKas').textContent = 'Rp ' + formatNumber(totalSimpanan - totalPinjaman);
+    }
+
+    function logout() {
+        if (confirm('Apakah Anda yakin ingin logout?')) {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+    }
+
+    function tambahAnggota() {
+        showNotification('Fitur tambah anggota akan segera tersedia', 'info');
+    }
+
+    function exportAllData() {
+        if (window.exportAllData) {
+            window.exportAllData();
+        } else {
+            showNotification('Fitur export belum tersedia', 'error');
+        }
+    }
+
+    function exportSyncLog() {
+        if (window.exportSyncLog) {
+            window.exportSyncLog();
+        } else {
+            showNotification('Fitur export log belum tersedia', 'error');
+        }
+    }
+
+    function filterAnggota() {
+        const searchTerm = document.getElementById('searchAnggota').value.toLowerCase();
+        const rows = document.querySelectorAll('#anggotaTableBody tr[data-email]');
+        
+        rows.forEach(row => {
+            const nama = row.cells[1].textContent.toLowerCase();
+            const email = row.cells[2].textContent.toLowerCase();
+            const nia = row.cells[3].textContent.toLowerCase();
+            
+            if (nama.includes(searchTerm) || email.includes(searchTerm) || nia.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // ===== EVENT LISTENERS =====
+    function setupEventListeners() {
+        // Update simpanan form
+        const updateForm = document.getElementById('updateSimpananForm');
+        if (updateForm) {
+            updateForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!selectedAnggotaEmail) return;
+                
+                const pokok = parseInt(document.getElementById('updatePokok').value) || 0;
+                const wajib = parseInt(document.getElementById('updateWajib').value) || 0;
+                const sukarela = parseInt(document.getElementById('updateSukarela').value) || 0;
+                const catatan = document.getElementById('updateCatatan').value;
+                
+                const updates = {
+                    simpanan: {
+                        pokok: { nominal: pokok, status: 'lunas' },
+                        wajib: { nominal: wajib, status: 'aktif' },
+                        sukarela: { nominal: sukarela, status: 'tersedia' }
+                    }
+                };
+                
+                if (catatan) {
+                    updates.catatan = catatan;
+                }
+                
+                const success = updateAnggotaData(selectedAnggotaEmail, updates);
+                
+                if (success) {
+                    closeUpdateModal();
+                }
+            });
+        }
+        
+        // Sync events
+        window.addEventListener('syncDataChanged', function(e) {
+            console.log('Sync data changed:', e.detail);
+            loadAnggotaData();
+            updateSyncStatusUI();
+        });
+        
+        window.addEventListener('dataSynced', function(e) {
+            console.log('Data synced:', e.detail);
+            if (e.detail.source === 'admin_sync') {
+                showNotification(`Data untuk ${e.detail.email} berhasil disinkronkan`, 'success');
+            }
+        });
+        
+        // Modal close on click outside
+        window.addEventListener('click', function(e) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+        
+        // Toggle Sidebar
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarClose = document.getElementById('sidebarClose');
+        
+        if (menuToggle) {
+            menuToggle.addEventListener('click', function() {
+                sidebar.classList.add('active');
+            });
+        }
+        
+        if (sidebarClose) {
+            sidebarClose.addEventListener('click', function() {
+                sidebar.classList.remove('active');
+            });
+        }
+        
+        // Navigasi Tab
+        const menuItems = document.querySelectorAll('.sidebar-menu a');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        menuItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (this.getAttribute('href') && this.getAttribute('href').startsWith('http')) {
+                    return;
+                }
+                
+                e.preventDefault();
+                
+                menuItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                tabContents.forEach(tab => tab.classList.remove('active'));
+                
+                const tabId = this.getAttribute('data-tab');
+                if (tabId) {
+                    document.getElementById(tabId).classList.add('active');
+                }
+                
+                if (window.innerWidth <= 992) {
+                    sidebar.classList.remove('active');
+                }
+            });
+        });
+    }
+
+    function createUIElements() {
+        // Create sync indicator jika belum ada
+        if (!document.getElementById('syncIndicator')) {
+            const indicator = document.createElement('div');
+            indicator.id = 'syncIndicator';
+            indicator.className = 'sync-indicator';
+            indicator.innerHTML = '<i class="fas fa-sync-alt"></i>';
+            indicator.title = 'Klik untuk sinkronisasi manual';
+            indicator.addEventListener('click', manualSync);
+            document.body.appendChild(indicator);
+        }
+    }
+
+    function startPeriodicUpdates() {
+        // Update waktu real-time
+        function updateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            const timeString = now.toLocaleDateString('id-ID', options);
+            const timeElement = document.getElementById('currentTime');
+            if (timeElement) {
+                timeElement.textContent = timeString;
+            }
+        }
+        
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // Update sync status every 5 seconds
+        setInterval(updateSyncStatusUI, 5000);
+        
+        // Auto refresh data every 30 seconds
+        setInterval(() => {
+            loadAnggotaData();
+        }, 30000);
+    }
+
+    // ===== INITIALIZE =====
+    document.addEventListener('DOMContentLoaded', initializeAdminDashboard);
+    </script>
+
+    <!-- ========== SCRIPT TAMBAHAN UNTUK EXPORT EXCEL ========== -->
+    <script>
+    // SISTEM EXCEL/WEBHOOK
+    document.addEventListener('DOMContentLoaded', function() {     
+        class ExcelExportSystem {
+            constructor() {
+                this.webhookUrls = {
+                    anggota: 'https://hooks.zapier.com/hooks/catch/your-webhook/anggota',
+                    simpanan: 'https://hooks.zapier.com/hooks/catch/your-webhook/simpanan', 
+                    pinjaman: 'https://hooks.zapier.com/hooks/catch/your-webhook/pinjaman',
+                    barang: 'https://hooks.zapier.com/hooks/catch/your-webhook/barang'
+                };
+                this.autoSaveInterval = null;
+            }
+
+            exportAnggotaToCSV(anggotaData) {
+                const headers = ['ID_Anggota', 'Posisi', 'Nama', 'Alamat', 'Jenis_Kelamin', 'Agama', 'Status', 'Email', 'WhatsApp', 'NIK', 'Tanggal_Daftar', 'Status_Aktif'];
+                const csvData = anggotaData.map(anggota => [
+                    anggota.id, anggota.posisi, anggota.nama, anggota.alamat, 
+                    anggota.jenisKelamin, anggota.agama, anggota.status, anggota.email,
+                    anggota.whatsapp, anggota.nik, anggota.tanggalDaftar, anggota.statusAktif
+                ]);
+                return this.convertToCSV(headers, csvData);
+            }
+
+            exportSimpananToCSV(simpananData) {
+                const headers = ['ID_Simpanan', 'ID_Anggota', 'Nama_Anggota', 'Jenis_Simpanan', 'Tanggal_Setor', 'Nominal'];
+                const csvData = simpananData.map(simpanan => [
+                    simpanan.id, simpanan.idAnggota, simpanan.nama, 
+                    simpanan.jenisSimpanan, simpanan.tanggalSetor, simpanan.nominal
+                ]);
+                return this.convertToCSV(headers, csvData);
+            }
+
+            exportPinjamanToCSV(pinjamanData) {
+                const headers = ['ID_Pinjaman', 'ID_Anggota', 'Nama_Anggota', 'Jumlah_Pinjaman', 'Tanggal_Pinjam', 'Jangka_Waktu', 'Bunga', 'Sisa_Hutang', 'Status'];
+                const csvData = pinjamanData.map(pinjaman => [
+                    pinjaman.id, pinjaman.idAnggota, pinjaman.namaAnggota,
+                    pinjaman.jumlahPinjaman, pinjaman.tanggalPinjam, pinjaman.jangkaWaktu,
+                    pinjaman.bunga, pinjaman.sisaHutang, pinjaman.status
+                ]);
+                return this.convertToCSV(headers, csvData);
+            }
+
+            exportBarangToCSV(barangData) {
+                const headers = ['ID_Barang', 'Nama_Barang', 'Stok', 'Harga_Beli', 'Harga_Jual', 'Laba'];
+                const csvData = barangData.map(barang => [
+                    barang.id, barang.namaBarang, barang.stok,
+                    barang.hargaBeli, barang.hargaJual, barang.laba
+                ]);
+                return this.convertToCSV(headers, csvData);
+            }
+
+            convertToCSV(headers, data) {
+                const csvContent = [
+                    headers.join(','),
+                    ...data.map(row => 
+                        row.map(field => {
+                            if (typeof field === 'string' && (field.includes(',') || field.includes('"') || field.includes('\n'))) {
+                                return `"${field.replace(/"/g, '""')}"`;
+                            }
+                            return field;
+                        }).join(',')
+                    )
+                ].join('\n');
+                return csvContent;
+            }
+
+            downloadCSV(csvContent, filename) {
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', filename);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }
+            }
+
+            async sendToWebHook(data, type) {
+                try {
+                    const webhookUrl = this.webhookUrls[type];
+                    if (!webhookUrl) return false;
+
+                    const response = await fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: type, timestamp: new Date().toISOString(), data: data })
+                    });
+
+                    return response.ok;
+                } catch (error) {
+                    console.error('WebHook Error:', error);
+                    return false;
+                }
+            }
+
+            enableAutoSave(intervalMinutes = 5) {
+                if (this.autoSaveInterval) clearInterval(this.autoSaveInterval);
+                this.autoSaveInterval = setInterval(() => this.autoSaveData(), intervalMinutes * 60 * 1000);
+            }
+
+            disableAutoSave() {
+                if (this.autoSaveInterval) {
+                    clearInterval(this.autoSaveInterval);
+                    this.autoSaveInterval = null;
+                }
+            }
+
+            async autoSaveData() {
+                try {
+                    const anggotaData = JSON.parse(localStorage.getItem('anggotaData')) || [];
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                    
+                    if (anggotaData.length > 0) {
+                        const csvAnggota = this.exportAnggotaToCSV(anggotaData);
+                        this.downloadCSV(csvAnggota, `backup-anggota-${timestamp}.csv`);
+                    }
+                    console.log('Auto-save berhasil:', timestamp);
+                } catch (error) {
+                    console.error('Auto-save error:', error);
+                }
+            }
+        }
+
+        // Inisialisasi sistem
+        const excelExportSystem = new ExcelExportSystem();
+
+        // Fungsi untuk UI
+        function addExportUI() {
+            // Cari sidebar menu
+            const sidebar = document.querySelector('.sidebar-menu');
+            if (!sidebar) {
+                console.log('Sidebar tidak ditemukan, menambahkan ke content...');
+                // Tambahkan ke content sebagai fallback
+                const content = document.querySelector('.content');
+                if (content) {
+                    const exportSection = document.createElement('div');
+                    exportSection.className = 'card';
+                    exportSection.innerHTML = `
+                        <div class="section-header">
+                            <h2>📊 Ekspor Data</h2>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px;">
+                            <button class="btn btn-outline btn-sm" onclick="exportAnggotaCSV()">
+                                <i class="fas fa-file-csv"></i> Ekspor Anggota
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="exportSimpananCSV()">
+                                <i class="fas fa-file-csv"></i> Ekspor Simpanan
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="exportPinjamanCSV()">
+                                <i class="fas fa-file-csv"></i> Ekspor Pinjaman
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="exportBarangCSV()">
+                                <i class="fas fa-file-csv"></i> Ekspor Barang
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="sendToWebHook('all')" style="grid-column: 1 / -1;">
+                                <i class="fas fa-paper-plane"></i> Kirim ke WebHook
+                            </button>
+                        </div>
+                    `;
+                    content.appendChild(exportSection);
+                }
+                return;
+            }
+
+            // Tambahkan ke sidebar
+            const exportItem = document.createElement('li');
+            exportItem.innerHTML = `
+                <div style="padding: 15px; background: white; margin: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    <h4 style="margin-bottom: 10px; color: var(--primary);">📊 Ekspor Data</h4>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button class="btn btn-outline btn-sm" onclick="exportAnggotaCSV()" style="text-align: left;">
+                            <i class="fas fa-file-csv"></i> Anggota
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="exportSimpananCSV()" style="text-align: left;">
+                            <i class="fas fa-file-csv"></i> Simpanan
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="exportPinjamanCSV()" style="text-align: left;">
+                            <i class="fas fa-file-csv"></i> Pinjaman
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="exportBarangCSV()" style="text-align: left;">
+                            <i class="fas fa-file-csv"></i> Barang
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="sendToWebHook('all')">
+                            <i class="fas fa-paper-plane"></i> WebHook
+                        </button>
+                    </div>
+                </div>
+            `;
+            sidebar.appendChild(exportItem);
+        }
+
+        // Fungsi ekspor global
+        window.exportAnggotaCSV = function() {
+            try {
+                const anggotaData = JSON.parse(localStorage.getItem('anggotaData')) || [];
+                if (anggotaData.length === 0) {
+                    alert('Tidak ada data anggota!');
+                    return;
+                }
+                const csvContent = excelExportSystem.exportAnggotaToCSV(anggotaData);
+                const filename = `anggota-${new Date().toISOString().slice(0,10)}.csv`;
+                excelExportSystem.downloadCSV(csvContent, filename);
+                
+                excelExportSystem.sendToWebHook(anggotaData, 'anggota');
+                
+                showNotification('Data anggota berhasil diekspor!', 'success');
+            } catch (error) {
+                console.error('Export error:', error);
+                showNotification('Gagal mengekspor data!', 'error');
+            }
+        };
+
+        window.exportSimpananCSV = function() {
+            try {
+                const simpananData = JSON.parse(localStorage.getItem('simpananData')) || [];
+                if (simpananData.length === 0) {
+                    alert('Tidak ada data simpanan!');
+                    return;
+                }
+                const csvContent = excelExportSystem.exportSimpananToCSV(simpananData);
+                const filename = `simpanan-${new Date().toISOString().slice(0,10)}.csv`;
+                excelExportSystem.downloadCSV(csvContent, filename);
+                showNotification('Data simpanan berhasil diekspor!', 'success');
+            } catch (error) {
+                showNotification('Gagal mengekspor data!', 'error');
+            }
+        };
+
+        window.exportPinjamanCSV = function() {
+            try {
+                const pinjamanData = JSON.parse(localStorage.getItem('pinjamanData')) || [];
+                if (pinjamanData.length === 0) {
+                    alert('Tidak ada data pinjaman!');
+                    return;
+                }
+                const csvContent = excelExportSystem.exportPinjamanToCSV(pinjamanData);
+                const filename = `pinjaman-${new Date().toISOString().slice(0,10)}.csv`;
+                excelExportSystem.downloadCSV(csvContent, filename);
+                showNotification('Data pinjaman berhasil diekspor!', 'success');
+            } catch (error) {
+                showNotification('Gagal mengekspor data!', 'error');
+            }
+        };
+
+        window.exportBarangCSV = function() {
+            try {
+                const barangData = JSON.parse(localStorage.getItem('barangData')) || [];
+                if (barangData.length === 0) {
+                    alert('Tidak ada data barang!');
+                    return;
+                }
+                const csvContent = excelExportSystem.exportBarangToCSV(barangData);
+                const filename = `barang-${new Date().toISOString().slice(0,10)}.csv`;
+                excelExportSystem.downloadCSV(csvContent, filename);
+                showNotification('Data barang berhasil diekspor!', 'success');
+            } catch (error) {
+                showNotification('Gagal mengekspor data!', 'error');
+            }
+        };
+
+        window.sendToWebHook = async function(type) {
+            try {
+                showNotification('Mengirim data ke WebHook...', 'info');
+                const anggotaData = JSON.parse(localStorage.getItem('anggotaData')) || [];
+                const result = await excelExportSystem.sendToWebHook(anggotaData, 'anggota');
+                
+                if (result) {
+                    showNotification('Data berhasil dikirim ke WebHook!', 'success');
+                } else {
+                    showNotification('Gagal mengirim ke WebHook!', 'error');
+                }
+            } catch (error) {
+                showNotification('Error WebHook!', 'error');
+            }
+        };
+
+        window.exportAllData = function() {
+            try {
+                const semuaAnggota = JSON.parse(localStorage.getItem('anggotaData')) || [];
+                const koperasiData = JSON.parse(localStorage.getItem('koperasiData')) || {};
+                
+                console.log('Exporting data for', semuaAnggota.length, 'anggota');
+                
+                const exportData = semuaAnggota.map((anggota, index) => {
+                    return {
+                        'No': index + 1,
+                        'NIA': anggota.id || '',
+                        'Nama Lengkap': anggota.nama || '',
+                        'Email': anggota.email || '',
+                        'No WhatsApp': anggota.whatsapp || '',
+                        'Posisi': anggota.posisi || '',
+                        'Alamat': anggota.alamat || '',
+                        'Jenis Kelamin': anggota.jenisKelamin || '',
+                        'Agama': anggota.agama || '',
+                        'Status Perkawinan': anggota.status || '',
+                        'NIK': anggota.nik || '',
+                        'Tanggal Daftar': anggota.tanggalDaftar || '',
+                        'Status Keanggotaan': anggota.statusAktif || '',
+                        'Simpanan Pokok': anggota.simpanan?.pokok?.nominal || 0,
+                        'Status Pokok': anggota.simpanan?.pokok?.status || '',
+                        'Simpanan Wajib': anggota.simpanan?.wajib?.nominal || 0,
+                        'Status Wajib': anggota.simpanan?.wajib?.status || '',
+                        'Terakhir Bayar': anggota.simpanan?.wajib?.terakhirBayar || '',
+                        'Simpanan Sukarela': anggota.simpanan?.sukarela?.nominal || 0,
+                        'Status Sukarela': anggota.simpanan?.sukarela?.status || '',
+                        'Total Simpanan': anggota.simpanan?.total || 0,
+                        'Total Pinjaman': anggota.pinjaman?.total || 0,
+                        'Jumlah Pinjaman Aktif': anggota.pinjaman?.aktif?.length || 0,
+                        'SHU Estimasi': anggota.shu?.estimasi || 0,
+                        'Status SHU': anggota.shu?.status || '',
+                        'Terakhir Update': anggota.lastUpdated || '',
+                        'Diupdate Oleh': anggota.updatedBy || '',
+                        'Catatan': 'Data ekspor dari Koperasi Asmara Tani'
+                    };
+                });
+                
+                // Buat workbook
+                const wb = XLSX.utils.book_new();
+                
+                // Sheet data anggota
+                const wsAnggota = XLSX.utils.json_to_sheet(exportData);
+                XLSX.utils.book_append_sheet(wb, wsAnggota, 'Data Anggota');
+                
+                // Simpan file
+                XLSX.writeFile(wb, `Data_Anggota_Koperasi_${new Date().getTime()}.xlsx`);
+                
+                showNotification(`Data ${semuaAnggota.length} anggota berhasil diekspor!`, 'success');
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Export error:', error);
+                showNotification('Error: ' + error.message, 'error');
+                return false;
+            }
+        };
+
+        window.exportSyncLog = async function() {
+            try {
+                const koperasiData = JSON.parse(localStorage.getItem('koperasiData')) || {};
+                const logs = koperasiData.syncLog || [];
+                
+                console.log('Exporting', logs.length, 'sync logs');
+                
+                const exportData = logs.map((log, index) => ({
+                    'No': index + 1,
+                    'Waktu': new Date(log.timestamp).toLocaleString('id-ID'),
+                    'Tipe': log.type,
+                    'Pesan': log.message,
+                    'User': log.user,
+                    'Status': 'Selesai',
+                    'Browser': log.userAgent ? log.userAgent.substring(0, 50) + '...' : ''
+                }));
+                
+                // Buat workbook
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                XLSX.utils.book_append_sheet(wb, ws, 'Log Sinkronisasi');
+                
+                // Simpan file
+                XLSX.writeFile(wb, `Log_Sinkronisasi_${new Date().getTime()}.xlsx`);
+                
+                showNotification('Log sinkronisasi berhasil diekspor!', 'success');
+                return true;
+                
+            } catch (error) {
+                console.error('Export log error:', error);
+                showNotification('Gagal mengekspor log!', 'error');
+                return false;
+            }
+        };
+
+        // Tambahkan UI setelah delay kecil
+        setTimeout(addExportUI, 500);
+
+    });
+    </script>
+</body>
+</html>
